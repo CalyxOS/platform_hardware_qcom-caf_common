@@ -42,6 +42,8 @@ QSSI_SUPPORTED_PLATFORMS := \
 
 BOARD_USES_ADRENO := true
 
+BUILD_BROKEN_INCORRECT_PARTITION_IMAGES := true
+
 # Vibrator HAL
 $(call soong_config_set, vibrator, vibratortargets, vibratoraidlV2target)
 
