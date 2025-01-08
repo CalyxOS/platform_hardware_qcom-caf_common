@@ -59,10 +59,15 @@ SOONG_CONFIG_qtidisplay += \
     displayconfig_enabled \
     udfps \
     default \
+    shift_horizontal \
+    shift_vertical \
     var1 \
     var2 \
     var3 \
+    wide_color \
     target_no_raw10_custom_format \
+    target_uses_aligned_ycbcr_height \
+    target_uses_aligned_ycrcb_height \
     target_uses_unaligned_nv21_zsl \
     target_uses_unaligned_ycrcb \
     target_uses_ycrcb_camera_encode \
@@ -77,19 +82,48 @@ SOONG_CONFIG_qtidisplay_gralloc4 ?= false
 SOONG_CONFIG_qtidisplay_displayconfig_enabled ?= false
 SOONG_CONFIG_qtidisplay_udfps ?= false
 SOONG_CONFIG_qtidisplay_default ?= true
+SOONG_CONFIG_qtidisplay_shift_horizontal ?= 0
+SOONG_CONFIG_qtidisplay_shift_vertical ?= 0
 SOONG_CONFIG_qtidisplay_var1 ?= false
 SOONG_CONFIG_qtidisplay_var2 ?= false
 SOONG_CONFIG_qtidisplay_var3 ?= false
+SOONG_CONFIG_qtidisplay_wide_color ?= false
 SOONG_CONFIG_qtidisplay_target_no_raw10_custom_format ?= false
+SOONG_CONFIG_qtidisplay_target_uses_aligned_ycbcr_height ?= false
+SOONG_CONFIG_qtidisplay_target_uses_aligned_ycrcb_height ?= false
 SOONG_CONFIG_qtidisplay_target_uses_unaligned_nv21_zsl ?= false
 SOONG_CONFIG_qtidisplay_target_uses_unaligned_ycrcb ?= false
 SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_encode ?= false
 SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_preview ?= false
 SOONG_CONFIG_qtidisplay_target_uses_ycrcb_venus_camera_preview ?= false
 
+ifneq ($(TARGET_DISPLAY_SHIFT_HORIZONTAL),)
+    SOONG_CONFIG_qtidisplay_shift_horizontal := $(TARGET_DISPLAY_SHIFT_HORIZONTAL)
+endif
+
+ifneq ($(TARGET_DISPLAY_SHIFT_VERTICAL),)
+    SOONG_CONFIG_qtidisplay_shift_vertical := $(TARGET_DISPLAY_SHIFT_VERTICAL)
+endif
+
+ifeq ($(TARGET_HAS_WIDE_COLOR_DISPLAY), true)
+    SOONG_CONFIG_qtidisplay_wide_color := true
+endif
+
+ifeq ($(TARGET_USES_FOD_ZPOS),true)
+    SOONG_CONFIG_qtidisplay_udfps := true
+endif
+
 # For libgrallocutils features
 ifeq ($(TARGET_NO_RAW10_CUSTOM_FORMAT),true)
     SOONG_CONFIG_qtidisplay_target_no_raw10_custom_format := true
+endif
+
+ifeq ($(TARGET_USES_ALIGNED_YCBCR_HEIGHT),true)
+    SOONG_CONFIG_qtidisplay_target_uses_aligned_ycbcr_height := true
+endif
+
+ifeq ($(TARGET_USES_ALIGNED_YCRCB_HEIGHT),true)
+    SOONG_CONFIG_qtidisplay_target_uses_aligned_ycrcb_height := true
 endif
 
 ifeq ($(TARGET_USES_UNALIGNED_NV21_ZSL),true)
@@ -129,8 +163,10 @@ TARGET_USES_MEDIA_EXTENSIONS := true
 # Allow building audio encoders
 TARGET_USES_QCOM_MM_AUDIO := true
 
-# Enable color metadata
-TARGET_USES_COLOR_METADATA := true
+# Enable color metadata on UM platforms that support it
+ifneq ($(filter msm8937 msm8953 msm8996,$(TARGET_BOARD_PLATFORM)),)
+    TARGET_USES_COLOR_METADATA := true
+endif
 
 # Enable DRM PP driver on UM platforms that support it
 ifneq ($(filter $(UM_4_9_FAMILY) $(UM_4_14_FAMILY) $(UM_4_19_FAMILY) $(UM_5_4_FAMILY) $(UM_5_10_FAMILY) $(UM_5_15_FAMILY),$(TARGET_BOARD_PLATFORM)),)
@@ -139,7 +175,7 @@ ifneq ($(filter $(UM_4_9_FAMILY) $(UM_4_14_FAMILY) $(UM_4_19_FAMILY) $(UM_5_4_FA
 endif
 
 # Enable Gralloc4 on UM platforms that support it
-ifneq ($(filter $(UM_5_4_FAMILY) $(UM_5_10_FAMILY) $(UM_5_15_FAMILY),$(TARGET_BOARD_PLATFORM)),)
+ifneq ($(filter $(UM_4_14_FAMILY) $(UM_4_19_FAMILY) $(UM_5_4_FAMILY) $(UM_5_10_FAMILY) $(UM_5_15_FAMILY),$(TARGET_BOARD_PLATFORM)),)
     SOONG_CONFIG_qtidisplay_gralloc4 := true
 endif
 
