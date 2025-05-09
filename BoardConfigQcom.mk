@@ -124,12 +124,12 @@ SOONG_CONFIG_qtidisplay += \
     var3 \
     ubwcp_headers \
     wide_color \
+    target_kernel_version \
     target_no_raw10_custom_format \
     target_uses_aligned_ycbcr_height \
     target_uses_aligned_ycrcb_height \
     target_uses_unaligned_nv21_zsl \
     target_uses_unaligned_ycrcb \
-    target_uses_ycrcb_camera_encode \
     target_uses_ycrcb_camera_preview \
     target_uses_ycrcb_venus_camera_preview
 
@@ -150,12 +150,12 @@ SOONG_CONFIG_qtidisplay_var2 ?= false
 SOONG_CONFIG_qtidisplay_var3 ?= false
 SOONG_CONFIG_qtidisplay_ubwcp_headers ?= false
 SOONG_CONFIG_qtidisplay_wide_color ?= false
+SOONG_CONFIG_qtidisplay_target_kernel_version ?= 0
 SOONG_CONFIG_qtidisplay_target_no_raw10_custom_format ?= false
 SOONG_CONFIG_qtidisplay_target_uses_aligned_ycbcr_height ?= false
 SOONG_CONFIG_qtidisplay_target_uses_aligned_ycrcb_height ?= false
 SOONG_CONFIG_qtidisplay_target_uses_unaligned_nv21_zsl ?= false
 SOONG_CONFIG_qtidisplay_target_uses_unaligned_ycrcb ?= false
-SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_encode ?= false
 SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_preview ?= false
 SOONG_CONFIG_qtidisplay_target_uses_ycrcb_venus_camera_preview ?= false
 
@@ -173,6 +173,10 @@ endif
 
 ifeq ($(TARGET_USES_FOD_ZPOS),true)
     SOONG_CONFIG_qtidisplay_udfps := true
+endif
+
+ifneq ($(TARGET_KERNEL_VERSION),)
+    SOONG_CONFIG_qtidisplay_target_kernel_version := $(TARGET_KERNEL_VERSION)
 endif
 
 # For libgrallocutils features
@@ -196,25 +200,11 @@ ifeq ($(TARGET_USES_UNALIGNED_YCRCB),true)
     SOONG_CONFIG_qtidisplay_target_uses_unaligned_ycrcb := true
 endif
 
-ifeq ($(TARGET_USES_YCRCB_CAMERA_ENCODE),true)
-    SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_encode := true
-endif
-
 ifeq ($(TARGET_USES_YCRCB_CAMERA_PREVIEW),true)
     SOONG_CONFIG_qtidisplay_target_uses_ycrcb_camera_preview := true
 else ifeq ($(TARGET_USES_YCRCB_VENUS_CAMERA_PREVIEW),true)
     SOONG_CONFIG_qtidisplay_target_uses_ycrcb_venus_camera_preview := true
 endif
-
-# Add rmnetctl to soong config namespaces
-SOONG_CONFIG_NAMESPACES += rmnetctl
-
-# Add supported variables to rmnetctl config
-SOONG_CONFIG_rmnetctl += \
-    old_rmnet_data
-
-# Set default values for rmnetctl config
-SOONG_CONFIG_rmnetctl_old_rmnet_data ?= false
 
 # Tell HALs that we're compiling an AOSP build with an in-line kernel
 TARGET_COMPILE_WITH_MSM_KERNEL := true
@@ -282,19 +272,28 @@ endif
 
 # Opt-in for old rmnet_data driver
 ifeq ($(filter $(UM_5_15_FAMILY) $(UM_6_1_FAMILY),$(TARGET_BOARD_PLATFORM)),)
-    SOONG_CONFIG_rmnetctl_old_rmnet_data := true
+    $(call soong_config_set,rmnetctl,old_rmnet_data,true)
 endif
 
 # Use full QTI gralloc struct for GKI 2.0 targets
 ifneq ($(filter $(UM_5_10_FAMILY) $(UM_5_15_FAMILY) $(UM_6_1_FAMILY),$(TARGET_BOARD_PLATFORM)),)
     TARGET_GRALLOC_HANDLE_HAS_CUSTOM_CONTENT_MD_RESERVED_SIZE ?= true
     TARGET_GRALLOC_HANDLE_HAS_RESERVED_SIZE ?= true
+else
+    TARGET_GRALLOC_HANDLE_HAS_CUSTOM_CONTENT_MD_RESERVED_SIZE ?= false
+    TARGET_GRALLOC_HANDLE_HAS_RESERVED_SIZE ?= false
 endif
 
 # Use QTI gralloc UBWCP struct
 ifneq ($(filter $(UM_6_1_FAMILY),$(TARGET_BOARD_PLATFORM)),)
     TARGET_GRALLOC_HANDLE_HAS_UBWCP_FORMAT ?= true
+else
+    TARGET_GRALLOC_HANDLE_HAS_UBWCP_FORMAT ?= false
 endif
+
+$(call soong_config_set,qtidisplay,gralloc_handle_has_custom_content_md_reserved_size,$(TARGET_GRALLOC_HANDLE_HAS_CUSTOM_CONTENT_MD_RESERVED_SIZE))
+$(call soong_config_set,qtidisplay,gralloc_handle_has_reserved_size,$(TARGET_GRALLOC_HANDLE_HAS_RESERVED_SIZE))
+$(call soong_config_set,qtidisplay,gralloc_handle_has_ubwcp_format,$(TARGET_GRALLOC_HANDLE_HAS_UBWCP_FORMAT))
 
 ifneq ($(filter $(UM_3_18_HAL_FAMILY),$(TARGET_BOARD_PLATFORM)),)
     MSM_VIDC_TARGET_LIST := $(UM_3_18_HAL_FAMILY)
