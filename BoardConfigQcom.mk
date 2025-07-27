@@ -387,11 +387,7 @@ ifneq ($(USE_DEVICE_SPECIFIC_DATASERVICES),true)
 endif
 
 # Add thermal HAL to PRODUCT_SOONG_NAMESPACES
-ifneq ($(filter $(UM_6_6_FAMILY),$(TARGET_BOARD_PLATFORM)),)
-    PRODUCT_SOONG_NAMESPACES += hardware/qcom-caf/thermal
-else
-    PRODUCT_SOONG_NAMESPACES += hardware/qcom-caf/thermal-legacy-um
-endif
+PRODUCT_SOONG_NAMESPACES += hardware/qcom-caf/thermal
 
 # Add wlan to PRODUCT_SOONG_NAMESPACES
 PRODUCT_SOONG_NAMESPACES += hardware/qcom-caf/wlan
